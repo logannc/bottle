@@ -1595,7 +1595,7 @@ class BaseRequest(object):
             raise AttributeError("Attribute already defined: %s" % name)
         self.environ[key] = value
 
-    def __delattr__(self, name, value):
+    def __delattr__(self, name):
         try:
             del self.environ['bottle.request.ext.%s' % name]
         except KeyError:
