@@ -1207,7 +1207,14 @@ class BaseRequest(object):
     
     @property
     def form_container_type(self):
-      return UnicodeFormsDict if 'bottle.route' in self and self.route.config.get('__utf8.use_unicode_forms_dict') else FormsDict
+      use_unicode = False
+      if 'bottle.app' in self:
+        if 'utf8.unicode_forms' in self.app.config:
+          use_unicode = self.app.config['utf8.unicode_forms']
+      if 'bottle.route' in self:
+        if 'utf8.unicode_forms' in self.route.config:
+          use_unicode = self.route.config['utf8.unicode_forms']
+      return UnicodeFormsDict if use_unicode else FormsDict
 
     @DictProperty('environ', 'bottle.request.cookies', read_only=True)
     def cookies(self):
@@ -1975,21 +1982,6 @@ class HTTPError(HTTPResponse):
 class PluginError(BottleException):
     pass
 
-class UnicodeFormsPlugin(object):
-  """ This plugin changes the default behaviour of request attributes returning
-  :class: `FormsDict`. Instead, they return :class: `UnicodeFormsDict` which
-  defaults to returning unicode, while still allowing access to the raw data.
-  """
-
-  name = "UnicodeFormsPlugin"
-
-  def setup(self, app):
-    app.config._define('utf8.unicode_forms', default=False, validate=bool,
-                          help="Enable or disable automatic unicode decoding for FormDict data.")
-
-  def apply(self, cb, route):
-    route.config['__utf8.use_unicode_forms_dict'] = route.config['utf8.unicode_forms']
-    return cb
 
 class JSONPlugin(object):
     name = 'json'
